@@ -2,6 +2,8 @@ import { Link, useRouter } from "expo-router";
 import { Image, Text, TextInput, TouchableOpacity, View, Animated } from "react-native";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons'; 
+import VignetteImage from "../../assets/images/viñ.png"; // Importa la imagen
+import CheckImage from "../../assets/images/ver.png"; // Importa la imagen de verificación
 
 export default function registerP2() {
   const router = useRouter();
@@ -104,13 +106,28 @@ export default function registerP2() {
 
     return (
       <View className="w-full border-2 p-4 m-3">
-        <Text className={`font-outfit-medium mb-2 ${password ? 'text-blue-500' : ''}`}>Tu contraseña debe contener:</Text>
+        <Text className={`font-outfit-medium mb-2 ${password ? 'text-[#4285F4]' : ''}`}>Tu contraseña debe contener:</Text>
         <View className="pl-4">
-          <Text className={`font-outfit text-sm mb-1 ${hasMinLength ? 'text-blue-500' : ''}`}>• Al menos 8 caracteres de largo</Text>
-          <Text className={`font-outfit text-sm mb-1 ${hasLowerCase ? 'text-blue-500' : ''}`}>• Letras minúsculas (a-z)</Text>
-          <Text className={`font-outfit text-sm mb-1 ${hasUpperCase ? 'text-blue-500' : ''}`}>• Letras mayúsculas (A-Z)</Text>
-          <Text className={`font-outfit text-sm ${hasSpecialChar ? 'text-blue-500' : ''}`}>• Al menos un carácter especial (#,$,%,&,@)</Text>
-          <Text className={`font-outfit text-sm ${hasNumber ? 'text-blue-500' : ''}`}>• Números (0-9)</Text>
+          <View className="flex flex-row items-center mb-1">
+            <Image source={hasMinLength ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasMinLength ? '#4285F4' : 'black' }} />
+            <Text className={`font-outfit text-sm ${hasMinLength ? 'text-[#4285F4]' : ''}`}>Al menos 8 caracteres de largo</Text>
+          </View>
+          <View className="flex flex-row items-center mb-1">
+            <Image source={hasLowerCase ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasLowerCase ? '#4285F4' : 'black' }} />
+            <Text className={`font-outfit text-sm mb-1 ${hasLowerCase ? 'text-[#4285F4]' : ''}`}>Letras minúsculas (a-z)</Text>
+          </View>
+          <View className="flex flex-row items-center mb-1">
+            <Image source={hasUpperCase ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasUpperCase ? '#4285F4' : 'black' }} />
+            <Text className={`font-outfit text-sm mb-1 ${hasUpperCase ? 'text-[#4285F4]' : ''}`}>Letras mayúsculas (A-Z)</Text>
+          </View>
+          <View className="flex flex-row items-center mb-1">
+            <Image source={hasSpecialChar ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasSpecialChar ? '#4285F4' : 'black' }} />
+            <Text className={`font-outfit text-sm ${hasSpecialChar ? 'text-[#4285F4]' : ''}`}>Al menos un carácter especial (#,$,%,&,@)</Text>
+          </View>
+          <View className="flex flex-row items-center mb-1">
+            <Image source={hasNumber ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasNumber ? '#4285F4' : 'black' }} />
+            <Text className={`font-outfit text-sm ${hasNumber ? 'text-[#4285F4]' : ''}`}>Números (0-9)</Text>
+          </View>
         </View>
       </View>
     );
@@ -154,18 +171,20 @@ export default function registerP2() {
           </TouchableOpacity>
         </View>
         {showPasswordRequirements && <PasswordRequirements />}
-        <TouchableOpacity className="w-[300px] border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4" onPress={handleSubmit}>
+        <TouchableOpacity className="w-full border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4" onPress={handleSubmit}>
           <Text className="text-2xl font-outfit-medium text-center text-white">
             Registrarse
           </Text>
         </TouchableOpacity>
         
-        <Text className="font-outfit-medium text-xl">
+        <View className="w-full">
+          <Text className="font-outfit-medium text-xl text-left">
             ¿Ya tienes cuenta?{" "}
             <Link href="/Propietario/signInP" className="font-outfit-bold">
-                Inicia Sesión
+              Inicia Sesión
             </Link>
-        </Text>
+          </Text>
+        </View>
       </View>
       
       {showAlert && (

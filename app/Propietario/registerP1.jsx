@@ -160,12 +160,9 @@ export default function registerP1() {
           underlineColorAndroid="transparent"
         />
 
-        <TouchableOpacity
-          className="w-[300px] border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4"
-          onPress={handleSubmit}
-        >
+        <TouchableOpacity className="w-full border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4" onPress={handleSubmit}>
           <Text className="text-2xl font-outfit-medium text-center text-white">
-            Siguiente
+            Registrarse
           </Text>
         </TouchableOpacity>
 

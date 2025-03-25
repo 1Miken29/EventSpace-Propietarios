@@ -5,7 +5,7 @@ export default function Exito() {
   return (
     <View className="bg-[#C3B6E3] w-full h-full items-center justify-center">
       <View className="bg-white rounded-[33px] w-96 px-4 items-center py-10">
-      <View className="flex flex-row items-center w-80">
+        <View className="flex flex-row items-center w-80">
           <Image source={require("../assets/images/Logo.png")} />
           <Text className="pl-2 font-outfit-bold text-2xl leading-tight">
             EventSpace 
@@ -14,14 +14,17 @@ export default function Exito() {
         </View>
         <Image source={require("../assets/images/check.png")} className="mt-10"/>
         <Text className="font-outfit-medium m-10 text-center text-3xl">
-            Usuario Registrado con Éxito
+            Bienvenido a Event Space
+        </Text>
+        <Text className="font-outfit text-xl text-center">
+            usuariooo x
         </Text>
         <TouchableOpacity className="w-[300px] border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full">
           <Link
             href="/inicial"
             className="text-2xl font-outfit-medium text-center text-white"
           >
-            Aceptar
+            <C></C>ontinuar
           </Link>
         </TouchableOpacity>
       </View>
