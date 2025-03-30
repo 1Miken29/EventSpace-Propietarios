@@ -2,8 +2,10 @@ import { Link, useRouter } from "expo-router";
 import { Image, Text, TextInput, TouchableOpacity, View, Animated } from "react-native";
 import { useState, useEffect } from "react";
 import { Ionicons } from '@expo/vector-icons';
+import axios from "axios";
 
-export default function signInP() {
+export default function Recuperacion() {
+  const baseURL = "https://eventspce-production.up.railway.app/api"
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
@@ -40,8 +42,8 @@ export default function signInP() {
   const checkEmailStatus = async (email) => {
     // Aquí deberías implementar la lógica para verificar el email en tu backend
     // Simulamos diferentes estados de usuario
-    const userStatus = 'not_found'; // Puede ser 'active', 'deleted', 'not_found', 'invalid_credentials'
-    return userStatus;
+    //const userStatus = 'not_found'; // Puede ser 'active', 'deleted', 'not_found', 'invalid_credentials'
+    //return userStatus;
   };
 
   const handleSubmit = async () => {
@@ -61,7 +63,20 @@ export default function signInP() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      router.push("/Propietario/reen");
+      try{
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        const correo = {
+          email: formData.email
+        }
+        const response = await axios.post(
+          `${baseURL}/users/forgot_password`,
+          correo
+        )
+        console.log(response.data)
+        router.push("/reen");
+      } catch (error) {
+        console.error(error.response?.data || error.message)
+      }
     } else {
       const errorMessages = Object.values(newErrors).join('\n');
       setAlertMessage(errorMessages);
@@ -106,7 +121,7 @@ export default function signInP() {
         </View>
 
         <TouchableOpacity className="w-full border-2 border-[#C4C4C4] bg-transparent py-[18px] rounded-full my-4">
-            <Link href="/Propietario/signInP" className="flex flex-row items-center justify-center">
+            <Link href="/signInP" className="flex flex-row items-center justify-center">
                 <Text className="text-2xl font-outfit-medium text-center text-black">
                 Regresar
                 </Text>

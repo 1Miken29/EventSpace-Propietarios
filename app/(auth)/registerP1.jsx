@@ -1,6 +1,7 @@
 import { Link, useRouter } from "expo-router";
 import { Image, Text, TextInput, TouchableOpacity, View, Animated } from "react-native";
 import { useState, useEffect } from "react";
+import { useUser } from "../../hooks/UserContext"
 
 export default function registerP1() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function registerP1() {
     apellidoMaterno: '',
     fechaNacimiento: '',
   });
+  const { savePersonalData } = useUser()
 
   const [errors, setErrors] = useState({});
   const [showAlert, setShowAlert] = useState(false);
@@ -99,7 +101,8 @@ export default function registerP1() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      router.push("/Propietario/registerP2");
+      savePersonalData(formData)
+      router.push("/registerP2");
     } else {
       const errorMessages = Object.values(newErrors).join('\n');
       setAlertMessage(errorMessages);
@@ -169,7 +172,7 @@ export default function registerP1() {
         <View className="w-full">
           <Text className="font-outfit-medium text-xl text-left">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/Propietario/signInP" className="font-outfit-bold">
+            <Link href="/signInP" className="font-outfit-bold">
               Inicia Sesión
             </Link>
           </Text>

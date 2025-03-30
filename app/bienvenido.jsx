@@ -1,7 +1,7 @@
 import { Link } from "expo-router";
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function Exito() {
+export default function Bienvenido() {
   return (
     <View className="bg-[#C3B6E3] w-full h-full items-center justify-center">
       <View className="bg-white rounded-[33px] w-96 px-4 items-center py-10">

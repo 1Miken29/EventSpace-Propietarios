@@ -1,19 +1,20 @@
 import { Link, useRouter } from "expo-router";
 import { Image, Text, TextInput, TouchableOpacity, View, Animated } from "react-native";
 import { useState, useEffect } from "react";
-import { Ionicons } from '@expo/vector-icons'; 
-import VignetteImage from "../../assets/images/viñ.png"; // Importa la imagen
-import CheckImage from "../../assets/images/ver.png"; // Importa la imagen de verificación
+import { Ionicons } from '@expo/vector-icons';
+import { useUser } from "../../hooks/UserContext";
+import axios from "axios";
 
-export default function registerP2() {
+export default function signInP() {
+  const baseURL = "https://eventspce-production.up.railway.app/api";
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const { saveCredentials } = useUser()
 
   const [errors, setErrors] = useState({});
-  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -45,39 +46,47 @@ export default function registerP2() {
   const validatePassword = (password) => {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /[0-9]/.test(password);
     const hasSpecialChar = /[#$%&@]/.test(password);
-    const hasNumber = /\d/.test(password);
     const hasMinLength = password.length >= 8;
 
     const newErrors = [];
     if (!hasUpperCase) newErrors.push('Debe contener al menos una mayúscula');
     if (!hasLowerCase) newErrors.push('Debe contener al menos una minúscula');
+    if (!hasNumbers) newErrors.push('Debe contener al menos un número (0-9)');
     if (!hasSpecialChar) newErrors.push('Debe contener al menos un carácter especial (#,$,%,&,@)');
-    if (!hasNumber) newErrors.push('Debe contener al menos un número (0-9)');
     if (!hasMinLength) newErrors.push('Debe contener al menos 8 caracteres');
 
     return newErrors;
   };
 
-  const checkDuplicateEmail = async (email) => {
+  const checkEmailStatus = async (email) => {
     // Aquí deberías implementar la lógica para verificar el email en tu backend
-    // Por ahora retornamos false como ejemplo
-    return false;
+    // Simulamos diferentes estados de usuario
+    //const userStatus = 'not_found'; // Puede ser 'active', 'deleted', 'not_found', 'invalid_credentials'
+    //return userStatus;
   };
 
   const handleSubmit = async () => {
     const newErrors = {};
 
     if (!formData.email) {
-      newErrors.email = 'Por favor ingrese un correo electrónico';
+      newErrors.email = 'Por favor ingrese su correo electrónico';
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'El correo introducido es incorrecto, intente de nuevo';
-    } else if (await checkDuplicateEmail(formData.email)) {
-      newErrors.email = 'Correo electrónico ya ha sido registrado, inicie sesión';
+      newErrors.email = 'El correo electrónico que introdujo no es valido, inténtelo de nuevo o regístrate';
+    } else {
+      const userStatus = await checkEmailStatus(formData.email);
+      if (userStatus === 'not_found') {
+        newErrors.email = 'Correo electrónico no encontrado';
+      } else if (userStatus === 'deleted') {
+        newErrors.email = 'El usuario al que intenta acceder dio de baja su cuenta en el sistema';
+      } else if (userStatus === 'invalid_credentials') {
+        newErrors.email = 'Las credenciales no son correctas, intente de nuevo';
+      }
     }
 
     if (!formData.password) {
-      newErrors.password = 'Por favor ingrese una contraseña';
+      newErrors.password = 'Por favor ingrese su contraseña';
     } else {
       const passwordErrors = validatePassword(formData.password);
       if (passwordErrors.length > 0) {
@@ -88,49 +97,27 @@ export default function registerP2() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      router.push("/exito");
+      try{
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        const credentials = {
+          email: formData.email,
+          password: formData.password
+        }
+        const response = await axios.post(
+          `${baseURL}/users/login`,
+          credentials
+        )
+        console.log(response.data)
+        saveCredentials(credentials)
+        router.push("/exito");
+      } catch (error) {
+        console.error(error.response?.data || error.message)
+      }
     } else {
       const errorMessages = Object.values(newErrors).join('\n');
       setAlertMessage(errorMessages);
       setShowAlert(true);
     }
-  };
-
-  const PasswordRequirements = () => {
-    const password = formData.password;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasSpecialChar = /[#$%&@]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasMinLength = password.length >= 8;
-
-    return (
-      <View className="w-full border-2 p-4 m-3">
-        <Text className={`font-outfit-medium mb-2 ${password ? 'text-[#4285F4]' : ''}`}>Tu contraseña debe contener:</Text>
-        <View className="pl-4">
-          <View className="flex flex-row items-center mb-1">
-            <Image source={hasMinLength ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasMinLength ? '#4285F4' : 'black' }} />
-            <Text className={`font-outfit text-sm ${hasMinLength ? 'text-[#4285F4]' : ''}`}>Al menos 8 caracteres de largo</Text>
-          </View>
-          <View className="flex flex-row items-center mb-1">
-            <Image source={hasLowerCase ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasLowerCase ? '#4285F4' : 'black' }} />
-            <Text className={`font-outfit text-sm mb-1 ${hasLowerCase ? 'text-[#4285F4]' : ''}`}>Letras minúsculas (a-z)</Text>
-          </View>
-          <View className="flex flex-row items-center mb-1">
-            <Image source={hasUpperCase ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasUpperCase ? '#4285F4' : 'black' }} />
-            <Text className={`font-outfit text-sm mb-1 ${hasUpperCase ? 'text-[#4285F4]' : ''}`}>Letras mayúsculas (A-Z)</Text>
-          </View>
-          <View className="flex flex-row items-center mb-1">
-            <Image source={hasSpecialChar ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasSpecialChar ? '#4285F4' : 'black' }} />
-            <Text className={`font-outfit text-sm ${hasSpecialChar ? 'text-[#4285F4]' : ''}`}>Al menos un carácter especial (#,$,%,&,@)</Text>
-          </View>
-          <View className="flex flex-row items-center mb-1">
-            <Image source={hasNumber ? CheckImage : VignetteImage} style={{ width: 15, height: 15, marginRight: 8, tintColor: hasNumber ? '#4285F4' : 'black' }} />
-            <Text className={`font-outfit text-sm ${hasNumber ? 'text-[#4285F4]' : ''}`}>Números (0-9)</Text>
-          </View>
-        </View>
-      </View>
-    );
   };
 
   return (
@@ -143,24 +130,25 @@ export default function registerP2() {
           </Text>
           <Text className="font-outfit-light text-xl md:text-lg lg:text">{" "} | Propietarios</Text>
         </View>
-        <Text className="font-outfit text-xl my-10">Crea tu usuario</Text>
+        <Text className="font-outfit text-xl my-10">Inicia sesión</Text>
+        
         <TextInput
-          className={`h-14 w-full border ${errors.email ? 'border-red-500' : 'border-[#C4C4C4]'} rounded-xl p-3 font-outfit text-xl mb-2 ${formData.email ? 'text-black' : 'text-[#C4C4C4]'}`} 
+          className={`h-14 w-full border ${errors.email ? 'border-red-500 text-red-500' : 'border-[#C4C4C4]'} rounded-xl p-3 font-outfit text-xl mb-2 ${formData.email ? 'text-black' : 'text-[#C4C4C4]'}`}
           placeholder="Correo electrónico*"
           value={formData.email}
           onChangeText={(text) => setFormData({...formData, email: text})}
-          underlineColorAndroid="transparent"
+          keyboardType="email-address"
           autoCapitalize="none"
+          underlineColorAndroid="transparent"
         />
+
         <View className="relative w-full">
           <TextInput
-            className={`h-14 w-full border ${errors.password ? 'border-red-500' : 'border-[#C4C4C4]'} rounded-xl p-3 font-outfit text-xl ${formData.password ? 'text-black' : 'text-[#C4C4C4]'}`}
+            className={`h-14 w-full border ${errors.password ? 'border-red-500 text-red-500' : 'border-[#C4C4C4]'} rounded-xl p-3 font-outfit text-xl mb-2 ${formData.password ? 'text-black' : 'text-[#C4C4C4]'}`}
             placeholder="Contraseña*"
             value={formData.password}
             onChangeText={(text) => setFormData({...formData, password: text})}
             secureTextEntry={!passwordVisible}
-            onFocus={() => setShowPasswordRequirements(true)}
-            onBlur={() => setShowPasswordRequirements(false)}
             underlineColorAndroid="transparent"
           />
           <TouchableOpacity
@@ -170,23 +158,33 @@ export default function registerP2() {
             <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={24} color="gray" />
           </TouchableOpacity>
         </View>
-        {showPasswordRequirements && <PasswordRequirements />}
+
+        <View className="w-full">
+          <Text className="font-outfit-medium text-xl text-left my-2">
+            <Link href="/recu" className="font-outfit-medium">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </Text>
+        </View>
+
         <TouchableOpacity className="w-full border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4" onPress={handleSubmit}>
           <Text className="text-2xl font-outfit-medium text-center text-white">
-            Registrarse
+            Inicia sesión
           </Text>
         </TouchableOpacity>
         
         <View className="w-full">
           <Text className="font-outfit-medium text-xl text-left">
-            ¿Ya tienes cuenta?{" "}
-            <Link href="/Propietario/signInP" className="font-outfit-bold">
-              Inicia Sesión
+            ¿Aún no tienes cuenta?,{" "}
+            <Link href="/registerP1" className="font-outfit-bold">
+              Regístrate
             </Link>
           </Text>
         </View>
+        
+        
       </View>
-      
+
       {showAlert && (
         <Animated.View style={{ opacity: alertOpacity }} className="absolute bottom-10 w-11/12 bg-[#C4C4C4] p-4 rounded-lg items-center justify-center">
           <Text className="text-black text-center">{alertMessage}</Text>
