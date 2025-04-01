@@ -1,18 +1,10 @@
 import { Link, useRouter } from "expo-router";
-import {
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Animated,
-} from "react-native";
+import { Image, Text, TextInput, TouchableOpacity, View, Animated} from "react-native";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import VignetteImage from "../../assets/images/viñ.png"; // Importa la imagen
 import CheckImage from "../../assets/images/ver.png"; // Importa la imagen de verificación
 import { useUser } from "../../hooks/UserContext";
-import axios from "axios";
 
 export default function registerP2() {
   const baseURL = "https://eventspce-production.up.railway.app/api";

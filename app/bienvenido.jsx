@@ -24,7 +24,7 @@ export default function Bienvenido() {
             href="/inicial"
             className="text-2xl font-outfit-medium text-center text-white"
           >
-            <C></C>ontinuar
+            Continuar
           </Link>
         </TouchableOpacity>
       </View>
