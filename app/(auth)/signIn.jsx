@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUser } from "../../hooks/UserContext";
 import axios from "axios";
 
-export default function signInP() {
+export default function signIn() {
   const baseURL = "https://eventspce-production.up.railway.app/api";
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -17,7 +17,7 @@ export default function signInP() {
   const [errors, setErrors] = useState({});
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alertMessage, setAlertMessage] = useState([]); // Initialize as an array
   const alertOpacity = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function signInP() {
             duration: 300,
             useNativeDriver: true,
           }).start(() => setShowAlert(false));
-        }, 3000);
+        }, 3000); 
       });
     }
   }, [showAlert]);
@@ -73,9 +73,10 @@ export default function signInP() {
     if (!formData.email) {
       newErrors.email = 'Por favor ingrese su correo electrónico';
     } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'El correo electrónico que introdujo no es valido, inténtelo de nuevo o regístrate';
+      newErrors.email = 'El correo electrónico que introdujo no es válido, inténtelo de nuevo o regístrese';
     } else {
       const userStatus = await checkEmailStatus(formData.email);
+      
       if (userStatus === 'not_found') {
         newErrors.email = 'Correo electrónico no encontrado';
       } else if (userStatus === 'deleted') {
@@ -90,7 +91,7 @@ export default function signInP() {
     } else {
       const passwordErrors = validatePassword(formData.password);
       if (passwordErrors.length > 0) {
-        newErrors.password = 'La contraseña debe cumplir con los requisitos, inténtelo de nuevo';
+        newErrors.password = passwordErrors; // Store all password errors
       }
     }
 
@@ -109,13 +110,13 @@ export default function signInP() {
         )
         console.log(response.data)
         saveCredentials(credentials)
-        router.push("/exito");
+        router.push("/bienvenido");
       } catch (error) {
         console.error(error.response?.data || error.message)
       }
     } else {
-      const errorMessages = Object.values(newErrors).join('\n');
-      setAlertMessage(errorMessages);
+      const errorMessages = Object.values(newErrors).flat(); // Flatten nested arrays
+      setAlertMessage(errorMessages); // Ensure alertMessage is an array
       setShowAlert(true);
     }
   };
@@ -123,12 +124,11 @@ export default function signInP() {
   return (
     <View className="bg-[#C3B6E3] w-full h-full items-center justify-center">
       <View className="bg-white rounded-[33px] w-96 px-4 items-center py-10">
-        <View className="flex flex-row items-center w-80">
-          <Image source={require("../../assets/images/Logo.png")}/>
-          <Text className="pl-2 font-outfit-bold text-2xl leading-tight">
-            EventSpace 
+        <View className="flex flex-row items-center w-90">
+          <Image source={require("../../assets/images/Logo.png")} />
+          <Text className="pl-4 font-outfit-bold text-5xl ">
+            EventSpace
           </Text>
-          <Text className="font-outfit-light text-xl md:text-lg lg:text">{" "} | Propietarios</Text>
         </View>
         <Text className="font-outfit text-xl my-10">Inicia sesión</Text>
         
@@ -169,7 +169,7 @@ export default function signInP() {
 
         <TouchableOpacity className="w-full border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4" onPress={handleSubmit}>
           <Text className="text-2xl font-outfit-medium text-center text-white">
-            Inicia sesión
+            Iniciar sesión
           </Text>
         </TouchableOpacity>
         
@@ -185,11 +185,28 @@ export default function signInP() {
         
       </View>
 
-      {showAlert && (
-        <Animated.View style={{ opacity: alertOpacity }} className="absolute bottom-10 w-11/12 bg-[#C4C4C4] p-4 rounded-lg items-center justify-center">
-          <Text className="text-black text-center">{alertMessage}</Text>
-        </Animated.View>
-      )}
+      {showAlert && Array.isArray(alertMessage) && alertMessage.map((message, index) => (
+          <Animated.View
+            key={index}
+            style={{
+            opacity: alertOpacity,
+            transform: [{ translateY: alertOpacity.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            position: 'absolute',
+            bottom: 20 + index * 60, // Stack alerts vertically
+            width: '85%',
+            backgroundColor: '#00000066', // Ensure background color is visible
+            padding: 14,
+            borderRadius: 50,
+            alignSelf: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',}}>
+              <Image
+                source={require('../../assets/images/no.png')}
+                style={{ width: 30, height: 30, marginRight: 10 }}
+              />
+              <Text className="text-white font-outfit-medium text-center flex-1">{message}</Text>
+            </Animated.View>
+          ))}
     </View>
   );
 }

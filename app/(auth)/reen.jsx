@@ -34,12 +34,11 @@ export default function ReenviarMensaje() {
   return (
     <View className="bg-[#C3B6E3] w-full h-full items-center justify-center">
       <View className="bg-white rounded-[33px] w-96 px-4 items-center py-10">
-        <View className="flex flex-row items-center w-80">
-          <Image source={require("../../assets/images/Logo.png")}/>
-          <Text className="pl-2 font-outfit-bold text-2xl leading-tight">
-            EventSpace 
+      <View className="flex flex-row items-center w-90">
+          <Image source={require("../../assets/images/Logo.png")} />
+          <Text className="pl-4 font-outfit-bold text-5xl ">
+            EventSpace
           </Text>
-          <Text className="font-outfit-light text-xl md:text-lg lg:text">{" "} | Propietarios</Text>
         </View>
         <Text className="font-outfit-semibold text-xl my-10">Revisa tu correo electrónico</Text>
         <Text className="font-outfit-semibold text-lg mb-10 text-center w-auto">Enviamos un mensaje para validar tu direccion. Si no lo ves, revisa tu carpeta de correo no deseado.</Text>

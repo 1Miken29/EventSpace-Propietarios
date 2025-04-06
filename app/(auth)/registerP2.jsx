@@ -20,7 +20,7 @@ export default function registerP2() {
     useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState([]); // Initialize as an array
   const alertOpacity = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -36,11 +36,10 @@ export default function registerP2() {
             duration: 300,
             useNativeDriver: true,
           }).start(() => setShowAlert(false));
-        }, 3000);
+        }, 3000); 
       });
     }
-    console.log(userData);
-  }, [showAlert, userData]);
+  }, [showAlert]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -87,8 +86,7 @@ export default function registerP2() {
     } else {
       const passwordErrors = validatePassword(formData.password);
       if (passwordErrors.length > 0) {
-        newErrors.password =
-          "La contraseña debe cumplir con los requisitos, inténtelo de nuevo";
+        newErrors.password = passwordErrors; // Store all password errors
       }
     }
 
@@ -97,31 +95,13 @@ export default function registerP2() {
     if (Object.keys(newErrors).length === 0) {
       try {
         saveCredentials(formData);
-        /*
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        const updatedUser = {
-          apmat: userData.apellidoMaterno,
-          appat: userData.apellidoPaterno,
-          email: userData.email,
-          fechaNac: userData.fechaNacimiento.split("/").reverse().join("-"),
-          nombre: userData.nombre,
-          password: userData.password,
-          rol: "propietario",
-          telefono: "5652061908",
-        };
-        const response = await axios.post(
-          `${baseURL}/users/register`,
-          updatedUser
-        );
-        console.log(response.data);
-        */
         router.push("/exito");
       } catch (error) {
         console.error(error.response?.data || error.message);
       }
     } else {
-      const errorMessages = Object.values(newErrors).join("\n");
-      setAlertMessage(errorMessages);
+      const errorMessages = Object.values(newErrors).flat(); // Flatten nested arrays
+      setAlertMessage(errorMessages); // Ensure alertMessage is an array
       setShowAlert(true);
     }
   };
@@ -242,14 +222,10 @@ export default function registerP2() {
   return (
     <View className="bg-[#C3B6E3] w-full h-full items-center justify-center">
       <View className="bg-white rounded-[33px] w-96 px-4 items-center py-10">
-        <View className="flex flex-row items-center w-80">
+        <View className="flex flex-row items-center w-90">
           <Image source={require("../../assets/images/Logo.png")} />
-          <Text className="pl-2 font-outfit-bold text-2xl leading-tight">
+          <Text className="pl-4 font-outfit-bold text-5xl ">
             EventSpace
-          </Text>
-          <Text className="font-outfit-light text-xl md:text-lg lg:text">
-            {" "}
-            | Propietarios
           </Text>
         </View>
         <Text className="font-outfit text-xl my-10">Crea tu usuario</Text>
@@ -313,14 +289,28 @@ export default function registerP2() {
         </View>
       </View>
 
-      {showAlert && (
-        <Animated.View
-          style={{ opacity: alertOpacity }}
-          className="absolute bottom-10 w-11/12 bg-[#C4C4C4] p-4 rounded-lg items-center justify-center"
-        >
-          <Text className="text-black text-center">{alertMessage}</Text>
-        </Animated.View>
-      )}
+        {showAlert && Array.isArray(alertMessage) && alertMessage.map((message, index) => (
+          <Animated.View
+            key={index}
+            style={{
+            opacity: alertOpacity,
+            transform: [{ translateY: alertOpacity.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            position: 'absolute',
+            bottom: 20 + index * 60, // Stack alerts vertically
+            width: '85%',
+            backgroundColor: '#00000066', // Ensure background color is visible
+            padding: 14,
+            borderRadius: 50,
+            alignSelf: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',}}>
+              <Image
+                source={require('../../assets/images/no.png')}
+                style={{ width: 30, height: 30, marginRight: 10 }}
+              />
+              <Text className="text-white font-outfit-medium text-center flex-1">{message}</Text>
+            </Animated.View>
+          ))}
     </View>
   );
 }

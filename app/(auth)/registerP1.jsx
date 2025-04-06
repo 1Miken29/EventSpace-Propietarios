@@ -31,7 +31,7 @@ export default function registerP1() {
             duration: 300,
             useNativeDriver: true,
           }).start(() => setShowAlert(false));
-        }, 3000);
+        }, 3000); 
       });
     }
   }, [showAlert]);
@@ -72,7 +72,25 @@ export default function registerP1() {
 
   const validateDate = (date) => {
     const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$/;
-    return dateRegex.test(date);
+    if (!dateRegex.test(date)) return false;
+
+    const [day, month, year] = date.split('/').map(Number);
+
+    // Check for invalid February dates
+    if (month === 2 && (day > 29 || (day === 29 && !isLeapYear(year)))) {
+      return false;
+    }
+
+    // Check for months with only 30 days
+    if ([4, 6, 9, 11].includes(month) && day > 30) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const isLeapYear = (year) => {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   };
 
   const handleDateChange = (text) => {
@@ -80,32 +98,49 @@ export default function registerP1() {
     setFormData({ ...formData, fechaNacimiento: filteredText });
   };
 
+  const handlePhoneChange = (text) => {
+    const filteredText = text.replace(/[^0-9]/g, ''); // Allow only numbers
+    setFormData({ ...formData, numero: filteredText });
+
+    if (filteredText.length < 10) {
+      setAlertMessage('El número debe tener al menos 10 dígitos ');
+      setShowAlert(true);
+      setErrors({ ...errors, numero: 'Por favor ingrese un número de télefono' });
+    } else {
+      const newErrors = { ...errors };
+      delete newErrors.numero;
+      setErrors(newErrors);
+    }
+  };
+
   const handleSubmit = () => {
     const newErrors = {};
 
     if (!validateName(formData.nombre)) {
-      newErrors.nombre = 'Por favor ingrese un nombre';
+      newErrors.nombre = 'Por favor ingrese un nombre válido';
     }
     if (!validateName(formData.apellidoPaterno)) {
-      newErrors.apellidoPaterno = 'Por favor ingrese un apellido paterno';
+      newErrors.apellidoPaterno = 'Por favor ingrese un apellido paterno válido';
     }
     if (!validateName(formData.apellidoMaterno)) {
-      newErrors.apellidoMaterno = 'Por favor ingrese un apellido materno';
+      newErrors.apellidoMaterno = 'Por favor ingrese un apellido materno válido';
     }
     if (!validateDate(formData.fechaNacimiento)) {
       newErrors.fechaNacimiento = 'Por favor ingrese una fecha válida';
     } else if (!validateAge(formData.fechaNacimiento)) {
       newErrors.fechaNacimiento = 'Debe ser mayor de edad';
     }
+    if ((formData.numero || '').length < 10) {
+      newErrors.numero = 'El número debe tener al menos 10 dígitos';
+    }
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      savePersonalData(formData)
+      savePersonalData(formData);
       router.push("/registerP2");
     } else {
-      const errorMessages = Object.values(newErrors).join('\n');
-      setAlertMessage(errorMessages);
+      setAlertMessage(Object.values(newErrors)); // Ensure alertMessage is an array
       setShowAlert(true);
     }
   };
@@ -113,16 +148,15 @@ export default function registerP1() {
   return (
     <View className="bg-[#C3B6E3] w-full h-full items-center justify-center">
       <View className="bg-white rounded-[33px] w-96 px-4 items-center py-10">
-        <View className="flex flex-row items-center w-80">
+        <View className="flex flex-row items-center w-90">
           <Image source={require("../../assets/images/Logo.png")} />
-          <Text className="pl-2 font-outfit-bold text-2xl leading-tight">
+          <Text className="pl-4 font-outfit-bold text-5xl ">
             EventSpace
           </Text>
-          <Text className="font-outfit-light text-xl md:text-lg lg:text">{" "} | Propietarios</Text>
         </View>
         <Text className="font-outfit text-xl my-10">Crea tu usuario</Text>
-        <TextInput
         
+        <TextInput
           className={`h-14 w-full border ${errors.nombre ? 'border-red-500 text-#EA435' : 'border-[#C4C4C4]'} rounded-xl p-3 font-outfit text-xl ${formData.nombre ? 'text-black' : 'text-[#C4C4C4]'}`}
           placeholder="Nombre(s)*"
           placeholderTextColor="#C4C4C4"
@@ -162,6 +196,24 @@ export default function registerP1() {
           onChangeText={handleDateChange}
           underlineColorAndroid="transparent"
         />
+        <Text className="font-outfit text-xl my-2 self-start">Teléfono de contacto</Text>
+
+        <View className="flex flex-row items-center h-14 w-full border rounded-xl border-[#C4C4C4] p-3 ">
+          <Image
+            source={require('../../assets/images/mexico.png')}
+            style={{ width: 24, height: 24, marginRight: 8 }}
+          />
+          <Text className="text-black font-outfit text-xl mr-2">+52 </Text>
+          <TextInput
+            className={`flex-1 font-outfit text-xl w-full ${errors.numero ? 'border-red-500 text-#EA435' : 'border-[#C4C4C4]'} rounded-xl p-3 font-outfit text-xl ${formData.numero ? 'text-black' : 'text-[#C4C4C4]'}`}
+            placeholder="Número de teléfono*"
+            placeholderTextColor="#C4C4C4"
+            value={formData.numero}
+            onChangeText={handlePhoneChange}
+            keyboardType="phone-pad"
+            underlineColorAndroid="transparent"
+          />
+        </View>
 
         <TouchableOpacity className="w-full border border-[#4285F4] bg-[#246BFD] py-[18px] rounded-full my-4" onPress={handleSubmit}>
           <Text className="text-2xl font-outfit-medium text-center text-white">
@@ -172,18 +224,37 @@ export default function registerP1() {
         <View className="w-full">
           <Text className="font-outfit-medium text-xl text-left">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/signInP" className="font-outfit-bold">
+            <Link href="/signIn" className="font-outfit-bold">
               Inicia Sesión
             </Link>
           </Text>
         </View>
       </View>
 
-      {showAlert && (
-        <Animated.View style={{ opacity: alertOpacity }} className="absolute bottom-10 w-11/12 bg-[#C4C4C4] p-4 rounded-lg items-center justify-center">
-          <Text className="text-black text-center">{alertMessage}</Text>
+      {showAlert && Array.isArray(alertMessage) && alertMessage.map((message, index) => (
+        <Animated.View
+          key={index}
+          style={{
+            opacity: alertOpacity,
+            transform: [{ translateY: alertOpacity.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+            position: 'absolute',
+            bottom: 20 + index * 60, // Stack alerts vertically
+            width: '85%',
+            backgroundColor: '#00000066', // Ensure background color is visible
+            padding: 14,
+            borderRadius: 50,
+            alignSelf: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
+          <Image
+            source={require('../../assets/images/no.png')}
+            style={{ width: 30, height: 30, marginRight: 10 }}
+          />
+          <Text className="text-white font-outfit-medium text-center flex-1">{message}</Text>
         </Animated.View>
-      )}
+      ))}
     </View>
   );
 }

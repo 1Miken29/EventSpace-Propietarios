@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, Alert, Animated } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useEffect } from "react";
 
 const UserDataForm = () => {
   const navigation = useNavigation();
@@ -27,7 +28,28 @@ const UserDataForm = () => {
   const [activeButton, setActiveButton] = useState(null);
   const [originalData, setOriginalData] = useState(userData);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [alertMessage, setAlertMessage] = useState([]); // Initialize as an array
+  const [showAlert, setShowAlert] = useState(false); // Ensure showAlert is defined
+  const alertOpacity = useState(new Animated.Value(0))[0]; // Ensure alertOpacity is defined
+
+  useEffect(() => {
+      if (showAlert) {
+        Animated.timing(alertOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setTimeout(() => {
+            Animated.timing(alertOpacity, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }).start(() => setShowAlert(false));
+          }, 3000); 
+        });
+      }
+    }, [showAlert]);
 
   const validateName = (name) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name); // Solo letras y espacios
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Validación estándar de correo
@@ -39,7 +61,6 @@ const UserDataForm = () => {
       [name]: value
     }));
 
-    // Validaciones
     let error = '';
     if (name === 'firstName' || name === 'lastName' || name === 'maternalLastName') {
       if (!validateName(value)) {
@@ -51,7 +72,8 @@ const UserDataForm = () => {
       }
     } else if (name === 'phone') {
       if (!validatePhone(value)) {
-        error = 'El teléfono debe tener 10 dígitos.';
+        setAlertMessage(['El número debe tener 10 dígitos']); // Set alert message
+        setShowAlert(true); // Show alert
       }
     }
 
@@ -79,28 +101,33 @@ const UserDataForm = () => {
   };
 
   const validateAllFields = () => {
-    const hasEmptyFields = Object.values(userData).some(value => value === '');
+    const fieldsToValidate = { ...userData };
+    
+    // Exclude password from validation if not editing password
+    if (!isEditingPassword) {
+      delete fieldsToValidate.password;
+    }
+  
+    const hasEmptyFields = Object.values(fieldsToValidate).some(value => value.trim() === '');
     if (hasEmptyFields) {
-      Alert.alert('Error', 'Todos los campos son obligatorios');
+      setAlertMessage(['Por favor no deje ningún campo vacío']); // Set alert message
+      setShowAlert(true); // Show alert
       return false;
     }
-
+  
     const hasValidationErrors = Object.values(errors).some(error => error !== '');
     if (hasValidationErrors) {
-      Alert.alert('Error', 'Por favor corrige los errores antes de guardar');
-      return false;
+      return false; // Prevent saving if there are validation errors
     }
-
+  
     return true;
   };
 
   const handleSave = () => {
     if (!validateAllFields()) {
-      setShowErrorAlert(true);
-      setTimeout(() => setShowErrorAlert(false), 3000); 
-      return;
+      return; // Do nothing if validation fails
     }
-    setShowConfirmDialog(true);
+    setShowConfirmDialog(true); // Show confirmation dialog if validation passes
   };
 
   const confirmSave = () => {
@@ -108,17 +135,16 @@ const UserDataForm = () => {
     setIsEditing(false);
     setActiveButton(null);
     setShowConfirmDialog(false);
-    navigation.navigate('succes'); 
+    navigation.navigate('success'); 
   };
 
   return (
     <View className="flex-1 p-5 bg-[#8B5DFF1A] items-center justify-center">
-      <Text className="text-3xl font-outfit text-[#191D31] mb-5 text-left w-full">
+      <Text className="text-3xl font-outfit text-[#191D31] mb-5 text-left w-[95%]">
         Datos del Usuario
       </Text>
 
-      <View className="bg-[#8B5DFF24] rounded-[33px] w-[95%] p-3">
-        {/* Nombre */}
+      <View className="bg-[#8B5DFF24] rounded-[33px] w-[95%] p-3 py-8">
         <View className="w-full items-center mb-3">
           <Text className="text-sm font-outfit-medium text-[#8B5DFF] mb-2 self-start pl-3">
             Nombre(s)
@@ -126,7 +152,7 @@ const UserDataForm = () => {
           {isEditing ? (
             <>
               <TextInput
-                className="h-10 border border-[#C4C4C4] rounded bg-white w-11/12 self-center px-2"
+                className="p-3 border border-[#C4C4C4] rounded-[11px] bg-white w-11/12 self-center px-2"
                 placeholder="Nombre(s)"
                 placeholderTextColor="#C4C4C4"
                 value={userData.firstName}
@@ -140,7 +166,7 @@ const UserDataForm = () => {
               ) : null}
             </>
           ) : (
-            <View className="p-3 border border-[#C4C4C4] rounded bg-[#f9f9f9] w-11/12 self-center">
+            <View className="p-3 border border-[#C4C4C4] rounded-[11px] bg-[#f9f9f9] w-11/12 self-center">
               <Text>{userData.firstName || 'Nombre(s)'}</Text>
             </View>
           )}
@@ -154,7 +180,7 @@ const UserDataForm = () => {
           {isEditing ? (
             <>
               <TextInput
-                className="h-10 border border-[#C4C4C4] rounded bg-white w-11/12 self-center px-2"
+                className="p-3 border border-[#C4C4C4] rounded-[11px] bg-white w-11/12 self-center px-2"
                 placeholder="Apellido Paterno"
                 placeholderTextColor="#C4C4C4"
                 value={userData.lastName}
@@ -168,7 +194,7 @@ const UserDataForm = () => {
               ) : null}
             </>
           ) : (
-            <View className="p-3 border border-[#C4C4C4] rounded bg-[#f9f9f9] w-11/12 self-center">
+            <View className="p-3 border border-[#C4C4C4] rounded-[11px] bg-[#f9f9f9] w-11/12 self-center">
               <Text>{userData.lastName || 'Apellido Paterno'}</Text>
             </View>
           )}
@@ -182,7 +208,7 @@ const UserDataForm = () => {
           {isEditing ? (
             <>
               <TextInput
-                className="h-10 border border-[#C4C4C4] rounded bg-white w-11/12 self-center px-2"
+                className="p-3 border border-[#C4C4C4] rounded-[11px] bg-white w-11/12 self-center px-2"
                 placeholder="Apellido Materno"
                 placeholderTextColor="#C4C4C4"
                 value={userData.maternalLastName}
@@ -196,7 +222,7 @@ const UserDataForm = () => {
               ) : null}
             </>
           ) : (
-            <View className="p-3 border border-[#C4C4C4] rounded bg-[#f9f9f9] w-11/12 self-center">
+            <View className="p-3 border border-[#C4C4C4] rounded-[11px] bg-[#f9f9f9] w-11/12 self-center">
               <Text>{userData.maternalLastName || 'Apellido Materno'}</Text>
             </View>
           )}
@@ -209,7 +235,7 @@ const UserDataForm = () => {
           </Text>
           {isEditing ? (
             <TextInput
-              className="h-10 border border-[#C4C4C4] rounded bg-white w-11/12 self-center px-2"
+              className="p-3 border border-[#C4C4C4] rounded-[11px] bg-white w-11/12 self-center px-2"
               placeholder="Correo Electrónico"
               placeholderTextColor="#C4C4C4"
               underlineColorAndroid="transparent"
@@ -221,7 +247,7 @@ const UserDataForm = () => {
               keyboardType="email-address"
             />
           ) : (
-            <View className="p-3 border border-[#C4C4C4] rounded bg-[#f9f9f9] w-11/12 self-center">
+            <View className="p-3 border border-[#C4C4C4] rounded-[11px] bg-[#f9f9f9] w-11/12 self-center">
               <Text>{userData.email || 'Correo Electrónico'}</Text>
             </View>
           )}
@@ -235,7 +261,7 @@ const UserDataForm = () => {
           {isEditing ? (
             <>
               <TextInput
-                className="h-10 border border-[#C4C4C4] rounded bg-white w-11/12 self-center px-2"
+                className="p-3 border border-[#C4C4C4] rounded-[11px] bg-white w-11/12 self-center px-2"
                 placeholder="Teléfono"
                 placeholderTextColor="#C4C4C4"
                 value={userData.phone}
@@ -250,7 +276,7 @@ const UserDataForm = () => {
               ) : null}
             </>
           ) : (
-            <View className="p-3 border border-[#C4C4C4] rounded bg-[#f9f9f9] w-11/12 self-center">
+            <View className="p-3 border border-[#C4C4C4] rounded-[11px] bg-[#f9f9f9] w-11/12 self-center">
               <Text>{userData.phone || 'Teléfono'}</Text>
             </View>
           )}
@@ -263,7 +289,7 @@ const UserDataForm = () => {
           </Text>
           {isEditingPassword ? (
             <TextInput
-              className="h-10 border border-[#C4C4C4] rounded bg-white w-11/12 self-center px-2"
+              className="p-3 border border-[#C4C4C4] rounded-[11px] bg-white w-11/12 self-center px-2"
               placeholder="Contraseña"
               placeholderTextColor="#C4C4C4"
               value={userData.password}
@@ -275,7 +301,7 @@ const UserDataForm = () => {
               secureTextEntry
             />
           ) : (
-            <View className="p-3 border border-[#C4C4C4] rounded bg-[#f9f9f9] w-11/12 self-center">
+            <View className="p-3 border border-[#C4C4C4] rounded-[11px] bg-[#f9f9f9] w-11/12 self-center">
               <Text>{userData.password ? userData.password.replace(/./g, '•') : 'Contraseña'}</Text>
             </View>
           )}
@@ -311,13 +337,30 @@ const UserDataForm = () => {
         </View>
       </View>
 
-      {showErrorAlert && (
-        <View className="absolute bottom-20 w-11/12 bg-[#00000066] p-4 rounded-full mx-4">
-          <Text className="text-white font-outfit-medium text-center">
-            No se han podido actualizar los datos
-          </Text>
-        </View>
-      )}
+      {showAlert && Array.isArray(alertMessage) && alertMessage.map((message, index) => (
+              <Animated.View
+                key={index}
+                style={{
+                  opacity: alertOpacity,
+                  transform: [{ translateY: alertOpacity.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }],
+                  position: 'absolute',
+                  bottom: 20 + index * 60, // Stack alerts vertically
+                  width: '85%',
+                  backgroundColor: '#00000066', // Ensure background color is visible
+                  padding: 14,
+                  borderRadius: 50,
+                  alignSelf: 'center',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Image
+                  source={require('../../assets/images/no.png')}
+                  style={{ width: 30, height: 30, marginRight: 10 }}
+                />
+                <Text className="text-white font-outfit-medium text-center flex-1">{message}</Text>
+              </Animated.View>
+            ))}
 
       {showConfirmDialog && (
         <View className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -359,20 +402,24 @@ const UserDataForm = () => {
           <View className="flex-column justify-between ">
               <Image
               source={require('../../assets/images/home.png')}
-              style={{ width: 30, height: 30, tintColor: '#666876' }}/>
+              style={{ width: 30, height: 30 }}
+              tintColor="#666876"
+              />
               <Text className="text-[#666876] font-outfit-light text-center text-sm">Inicio</Text>
           </View>
           <View className="flex-column justify-between ">
               <Image
               source={require('../../assets/images/search.png')}
-              style={{ width: 30, height: 30, tintColor: '#666876' }}
+              style={{ width: 30, height: 30 }}
+              tintColor="#666876"
               />
               <Text className="text-[#666876] font-outfit-light text-center text-sm">Buscar</Text>
           </View>
           <View>
               <Image
               source={require('../../assets/images/p.png')}
-              style={{ width: 30, height: 30, tintColor: '#666876' }}
+              style={{ width: 30, height: 30 }}
+              tintColor="#666876"
               />
               <Text className="text-[#666876] font-outfit-light text-center text-sm">Perfil</Text>
           </View>
