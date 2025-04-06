@@ -5,6 +5,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 
 export default function UserProfile() {
   const [profileImage, setProfileImage] = useState(null);
+  const [isProfilePressed, setIsProfilePressed] = useState(false); // State to track press
 
   const handleImagePicker = () => {
     const options = {
@@ -133,31 +134,59 @@ export default function UserProfile() {
       </View>
 
       <View
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          width: '100%',
-          height: 60,
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          borderTopColor: '#C4C4C4',
-          borderTopWidth: 1,
-        }}
-      >
-        <Image
-          source={require('../../assets/images/home.png')}
-          style={{ width: 30, height: 30, tintColor: '#666876' }}
-        />
-        <Image
-          source={require('../../assets/images/search.png')}
-          style={{ width: 30, height: 30, tintColor: '#666876' }}
-        />
-        <Image
-          source={require('../../assets/images/p.png')}
-          style={{ width: 30, height: 30, tintColor: '#666876' }}
-        />
-      </View>
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  width: '100%',
+                  height: 60,
+                  flexDirection: 'row',
+                  justifyContent: 'space-around',
+                  alignItems: 'center',
+                  borderTopColor: '#C4C4C4',
+                  borderTopWidth: 1,
+                }}
+              >
+                <View className="flex-column justify-between ">
+                    <Image
+                    source={require('../../assets/images/home.png')}
+                    style={{ width: 30, height: 30 }}
+                    tintColor="#666876"
+                    />
+                    <Text className="text-[#666876] font-outfit-light text-center text-sm">Inicio</Text>
+                </View>
+                <View className="flex-column justify-between ">
+                    <Image
+                    source={require('../../assets/images/search.png')}
+                    style={{ width: 30, height: 30 }}
+                    tintColor="#666876"
+                    />
+                    <Text className="text-[#666876] font-outfit-light text-center text-sm">Buscar</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsProfilePressed(true); // Change color on press
+                    setTimeout(() => setIsProfilePressed(false), 200); // Reset color after 200ms
+                    navigation.navigate('user'); // Navigate to user.jsx
+                  }}
+                  className="flex-column justify-between"
+                >
+                  <Image
+                    source={require('../../assets/images/p.png')}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      tintColor: isProfilePressed ? '#8B5DFF' : '#666876', // Change color dynamically
+                    }}
+                  />
+                  <Text
+                    className={`font-outfit-light text-center text-sm ${
+                      isProfilePressed ? 'text-[#8B5DFF]' : 'text-[#666876]'
+                    }`}
+                  >
+                    Perfil
+                  </Text>
+                </TouchableOpacity>
+            </View>
 
     </View>
   );

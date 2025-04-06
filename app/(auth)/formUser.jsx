@@ -32,6 +32,7 @@ const UserDataForm = () => {
   const [alertMessage, setAlertMessage] = useState([]); // Initialize as an array
   const [showAlert, setShowAlert] = useState(false); // Ensure showAlert is defined
   const alertOpacity = useState(new Animated.Value(0))[0]; // Ensure alertOpacity is defined
+  const [isProfilePressed, setIsProfilePressed] = useState(false); // State to track press
 
   useEffect(() => {
       if (showAlert) {
@@ -415,14 +416,30 @@ const UserDataForm = () => {
               />
               <Text className="text-[#666876] font-outfit-light text-center text-sm">Buscar</Text>
           </View>
-          <View>
-              <Image
+          <TouchableOpacity
+            onPress={() => {
+              setIsProfilePressed(true); // Change color on press
+              setTimeout(() => setIsProfilePressed(false), 200); // Reset color after 200ms
+              navigation.navigate('user'); // Navigate to user.jsx
+            }}
+            className="flex-column justify-between"
+          >
+            <Image
               source={require('../../assets/images/p.png')}
-              style={{ width: 30, height: 30 }}
-              tintColor="#666876"
-              />
-              <Text className="text-[#666876] font-outfit-light text-center text-sm">Perfil</Text>
-          </View>
+              style={{
+                width: 30,
+                height: 30,
+                tintColor: isProfilePressed ? '#8B5DFF' : '#666876', // Change color dynamically
+              }}
+            />
+            <Text
+              className={`font-outfit-light text-center text-sm ${
+                isProfilePressed ? 'text-[#8B5DFF]' : 'text-[#666876]'
+              }`}
+            >
+              Perfil
+            </Text>
+          </TouchableOpacity>
       </View>
     </View>
   );
